@@ -1,6 +1,9 @@
 from khaiii import KhaiiiApi
 import re
 import os
+import pandas as pd
+from collections import defaultdict
+from hdfs import InsecureClient
 
 
 def clean_text(text):
@@ -98,6 +101,14 @@ def del_stopwords(text, stopwords):
     return rt
 
 
+def word_count(words):
+    counts = defaultdict(int)
+    for word in words:
+        counts[word] += 1
+
+    return counts
+
+
 def tokenize_file(directory, file_name, stopwords):
     file = open(os.path.join(directory, file_name), 'r')
     content = file.read()
@@ -106,12 +117,10 @@ def tokenize_file(directory, file_name, stopwords):
     mod_content = clean_text(content)
     mod_content = pos_text(mod_content)
     mod_content = stemming_text(mod_content)
-
     words = del_stopwords(mod_content, stopwords)
+    counts = word_count(words)
+    df = pd.DataFrame(data=counts)
 
-    save_file_name = '.'.join(file_name.split('.')[:-1]) + '_token.txt'
-    file = open(os.path.join(directory, save_file_name), 'w')
-    for word in words:
-        file.write(word)
-        file.write(' ')
-    file.close()
+    client = InsecureClient('http://localhost:9000')
+    with client.write(os.path.join(directory, file_name), encoding='utf-8') as writer:
+        df.to_csv(writer)

@@ -1,5 +1,5 @@
-from Crawler.modules import crawl
-from Crawler.modules import tokenize_nlp
+from modules import crawl
+from modules import tokenize_nlp
 import time
 import os
 
