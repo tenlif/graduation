@@ -119,7 +119,7 @@ def tokenize_file(directory, file_name, stopwords):
     mod_content = stemming_text(mod_content)
     words = del_stopwords(mod_content, stopwords)
     counts = word_count(words)
-    df = pd.DataFrame(data=counts)
+    df = pd.DataFrame(data=counts, index=[0])
 
     client = InsecureClient('http://localhost:9000')
     with client.write(os.path.join(directory, file_name), encoding='utf-8') as writer:
