@@ -1,5 +1,6 @@
 from modules import crawl
 from modules import tokenize_nlp
+from modules import clusterer
 import time
 import os
 
@@ -33,3 +34,5 @@ if __name__ == "__main__":
     stopwords = sw_file.read().split(',')
     for file_name in files.keys():
         tokenize_nlp.tokenize_file(directory, file_name, stopwords)
+
+    clusterer.cluster(directory)

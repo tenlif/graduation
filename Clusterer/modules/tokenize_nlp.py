@@ -123,5 +123,5 @@ def tokenize_file(directory, file_name, stopwords):
         if len(word) > 1:
             file.write(word)
             file.write(' ')
-            
+
     file.close()
