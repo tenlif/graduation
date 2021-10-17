@@ -1,5 +1,8 @@
 import os
 import pandas as pd
+import findspark
+
+findspark.init()
 
 from pyspark import SparkConf, SparkContext
 from pyspark.sql import SQLContext, Row, SparkSession
