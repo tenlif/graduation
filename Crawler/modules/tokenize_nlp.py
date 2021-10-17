@@ -106,14 +106,6 @@ def del_stopwords(text, stopwords):
     return rt
 
 
-def word_count(words):
-    counts = defaultdict(int)
-    for word in words:
-        counts[word] += 1
-
-    return counts
-
-
 def tokenize_file(directory, file_name, stopwords):
     file = open(os.path.join(directory, file_name), 'r')
     content = file.read()
@@ -128,6 +120,8 @@ def tokenize_file(directory, file_name, stopwords):
     save_file_name = '.'.join(file_name.split('.')[:-1]) + '_token.txt'
     file = open(os.path.join(directory, save_file_name), 'w')
     for word in words:
-        file.write(word)
-        file.write(' ')
+        if len(word) > 1:
+            file.write(word)
+            file.write(' ')
+            
     file.close()
