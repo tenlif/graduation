@@ -1,9 +1,7 @@
-from khaiii import KhaiiiApi
+from konlpy.tag import Mecab
 import re
 import os
-import pandas as pd
 from collections import defaultdict
-from hdfs import InsecureClient
 
 
 def clean_text(text):
@@ -17,6 +15,13 @@ def clean_text(text):
     text = text.lower()  # lower case
 
     return text
+
+
+def pos_text2(text):
+    api = Mecab()
+    noun = api.nouns(text)
+
+    return noun
 
 
 def pos_text(text):
@@ -92,7 +97,7 @@ def stemming_text(text):
 
 
 def del_stopwords(text, stopwords):
-    words = text.split()
+    words = text
     rt = []
     for word in words:
         if word not in stopwords:
@@ -115,12 +120,14 @@ def tokenize_file(directory, file_name, stopwords):
     file.close()
 
     mod_content = clean_text(content)
-    mod_content = pos_text(mod_content)
-    mod_content = stemming_text(mod_content)
+    # mod_content = pos_text(mod_content)
+    # mod_content = stemming_text(mod_content)
+    mod_content = pos_text2(mod_content)
     words = del_stopwords(mod_content, stopwords)
-    counts = word_count(words)
-    df = pd.DataFrame(data=counts, index=[0])
 
-    client = InsecureClient('http://localhost:9000')
-    with client.write(os.path.join(directory, file_name), encoding='utf-8') as writer:
-        df.to_csv(writer)
+    save_file_name = '.'.join(file_name.split('.')[:-1]) + '_token.txt'
+    file = open(os.path.join(directory, save_file_name), 'w')
+    for word in words:
+        file.write(word)
+        file.write(' ')
+    file.close()
