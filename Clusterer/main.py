@@ -1,6 +1,7 @@
 from modules import crawl
 from modules import tokenize_nlp
 from modules import clusterer
+from modules import savedb
 import time
 import os
 
@@ -35,4 +36,5 @@ if __name__ == "__main__":
     for file_name in files.keys():
         tokenize_nlp.tokenize_file(directory, file_name, stopwords)
 
-    clusterer.cluster(directory)
+    df = clusterer.cluster(directory)
+    savedb.save_mongo(strfstart, df)

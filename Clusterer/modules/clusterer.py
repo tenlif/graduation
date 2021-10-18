@@ -59,10 +59,4 @@ def cluster(path):
     ### Prediction
     prediction = model.transform(wordsSplit)
 
-    predictionPD = prediction.toPandas()
-
-    for i in predictionPD.groupby(predictionPD['prediction']).textArray:
-        counter = Counter([])
-        for j in i[1]:
-            counter.update(j)
-        print(counter.most_common(n=5))
+    return prediction.toPandas()
