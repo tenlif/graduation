@@ -21,6 +21,7 @@ def getKeywords(df):
 
 
 def openJson(dir):
+    path = os.path.join('data', dir)
     with open(os.path.join(path, 'info_' + dir + '.json')) as f:
         info = json.load(f)
 
