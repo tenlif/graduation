@@ -11,8 +11,13 @@ import {
 } from "@mui/material";
 import * as React from "react";
 import example from "../example.json";
+import {useEffect, useState} from "react";
+import API from "../API";
 
 function NavBar(){
+    function handleClick(){
+        window.location.href = `/`
+    }
     return(
         <Box sx={{ flexGrow: 1 }}>
             <AppBar position="static">
@@ -28,21 +33,23 @@ function NavBar(){
                     <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
                         News List
                     </Typography>
-                    <Button color="inherit" style={{fontWeight: 'bold', fontSize: '20px'}}>←</Button>
+                    <Button color="inherit" style={{fontWeight: 'bold', fontSize: '20px'}} onClick={handleClick}>←</Button>
                 </Toolbar>
             </AppBar>
-
         </Box>
     );
 }
 
 function ListElement(props) {
-    const {news} = props;
+    const {title, press, url} = props;
+    function handleClick(url){
+        window.location.href = url
+    }
     return(
         <>
-            <ListItemButton alignItems="flex-start">
+            <ListItemButton alignItems="flex-start" onClick={()=>{handleClick(url)}}>
                 <ListItemText
-                    primary={news[1]["title"]}
+                    primary={title}
                     secondary={
                         <React.Fragment>
                             <Typography
@@ -51,10 +58,8 @@ function ListElement(props) {
                                 variant="body2"
                                 color="text.primary"
                             >
-                                언론사
+                                {press}
                             </Typography>
-                            <br/>
-                            {" — " + news[1]["preview"]}
                         </React.Fragment>
                     }
                 />
@@ -65,11 +70,21 @@ function ListElement(props) {
 }
 
 function AlignItemsList() {
-    const data = getStaticProps();
+    const [news,setNews] = useState([]);
+    async function fetchNews(){
+        const urlParams = new URLSearchParams(window.location.search);
+        const d = await API.getNews(urlParams.get('t'), urlParams.get('keywords'));
+        setNews(d);
+    }
+
+    useEffect(async () => {
+        await fetchNews();
+    },[]);
+
     return (
         <List sx={{bgcolor: 'background.paper' }}>
-            {Object.entries(data["좌회전,차선,깜빡이,벌금,방향지시등"]).map((news, idx) =>
-                <ListElement key={idx} news={news} />
+            {news.map((news, idx) =>
+                <ListElement key={idx} title={news.title} url={news.url} press={news.press} />
             )}
         </List>
     );

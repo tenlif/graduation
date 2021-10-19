@@ -16,6 +16,9 @@ import {Fade} from "@mui/material";
 import example from '../example.json'
 
 import './Main.css';
+import API from "../API";
+import {useEffect, useState} from "react";
+import {Link} from "react-router-dom";
 
 const Item = styled(Paper)(({ theme }) => ({
     ...theme.typography.body2,
@@ -24,7 +27,8 @@ const Item = styled(Paper)(({ theme }) => ({
     color: theme.palette.text.secondary,
 }));
 
-function NavBar(){
+function NavBar(props){
+    const {times} = props
     return(
         <Box sx={{ flexGrow: 1 }}>
             <AppBar position="static">
@@ -40,7 +44,7 @@ function NavBar(){
                     <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
                         News Keywords
                     </Typography>
-                    <FadeMenu/>
+                    <FadeMenu times={times}/>
                 </Toolbar>
             </AppBar>
 
@@ -48,7 +52,16 @@ function NavBar(){
     );
 }
 
-function FadeMenu() {
+function FadeMenu(props) {
+    function timeFormat(timestring){
+        if(timestring === undefined){
+            return ''
+        }else {
+            return timestring.slice(0, 4) + '-' + timestring.slice(4, 6) + '-' + timestring.slice(6, 8) + ' ' +
+                timestring.slice(8, 10) + ':' + timestring.slice(10, 12) + ':' + timestring.slice(12, 14)
+        }
+    }
+    const {times} = props
     const [anchorEl, setAnchorEl] = React.useState(null);
     const open = Boolean(anchorEl);
     const handleClick = (event) => {
@@ -57,6 +70,15 @@ function FadeMenu() {
     const handleClose = () => {
         setAnchorEl(null);
     };
+
+    let time = ''
+    const urlParams = new URLSearchParams(window.location.search);
+    if (!urlParams.has('t')){
+        time = times[times.length-1]
+    }
+    else{
+        time = urlParams.get('t')
+    }
 
     return (
         <div>
@@ -68,7 +90,7 @@ function FadeMenu() {
                 onClick={handleClick}
                 color="inherit"
             >
-                Dashboard
+                {timeFormat(time)}
             </Button>
             <Menu
                 id="fade-menu"
@@ -80,22 +102,23 @@ function FadeMenu() {
                 onClose={handleClose}
                 TransitionComponent={Fade}
             >
-                <MenuItem onClick={handleClose}>Profile</MenuItem>
-                <MenuItem onClick={handleClose}>My account</MenuItem>
-                <MenuItem onClick={handleClose}>Logout</MenuItem>
+                {times.map(time => <Link to={`?t=${time}`}><MenuItem onClick={handleClose}>{timeFormat(time)}</MenuItem></Link>)}
             </Menu>
         </div>
     );
 }
 
 function GridComponent(props) {
-    const { news } = props;
+    function handleClick(time, keywords){
+        window.location.href = `/list?t=${time}&keywords=${keywords}`
+    }
+    const { keywords, time } = props;
     return (
         <Grid item xs={4}>
             <Paper>
-            <ListItemButton>
+                <ListItemButton onClick={() => {handleClick(time, keywords)}}>
                     <Box sx={{ minHeight: '150px', padding: '20px', textAlign: 'center'}}>
-                        {news[0].split(',').map(keyword => <h3 style={{fontSize: '30px', display:'inline', margin: '5px'}}>#{keyword} </h3>)}
+                        {keywords.split(',').map(keyword => <h3 style={{fontSize: '30px', display:'inline', margin: '5px'}}>#{keyword} </h3>)}
                     </Box>
                 </ListItemButton>
             </Paper>
@@ -103,20 +126,47 @@ function GridComponent(props) {
     )
 }
 
-function getStaticProps(){
-    const data =  JSON.parse(JSON.stringify(example));
-    return data;
-}
-
 export default function Main() {
-    const data = getStaticProps();
+    const [times,setTimes] = useState({});
+    const [keywords, setKeywords] = useState([]);
+
+    async function fetchTimes(){
+        const d = await API.getTimes();
+        setTimes(d);
+    }
+
+    async function fetchKeywords(time){
+        const d = await API.getKeywords(time);
+        setKeywords(d);
+    }
+
+    let time = ''
+    const urlParams = new URLSearchParams(window.location.search);
+
+    let times_arr = []
+    for(let i=0; i < times.length; i++){
+        times_arr.push(times[i]['time'])
+    }
+
+    if (!urlParams.has('t')){
+        time = times_arr[times_arr.length-1]
+    }
+    else{
+        time = urlParams.get('t')
+    }
+
+    useEffect(async () => {
+        await fetchTimes();
+        await fetchKeywords(time)
+    },[time]);
+
     return (
         <>
-            <NavBar/>
+            <NavBar times={times_arr}/>
             <Box sx={{ padding: '30px' }}>
                 <Grid container rowSpacing={3} columnSpacing={{ xs: 1, sm: 2, md: 3 }}>
-                    {Object.entries(data).map((news, idx) =>
-                        <GridComponent key={idx} news={news} />
+                    {keywords.map((keywords, idx) =>
+                        <GridComponent key={idx} keywords={keywords} time={time} />
                     )}
                 </Grid>
             </Box>
